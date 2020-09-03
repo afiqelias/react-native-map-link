@@ -47,7 +47,7 @@ export async function showLocation(options) {
   const lng = parseFloat(options.longitude);
   const latlng = `${lat},${lng}`;
   const title = options.title && options.title.length ? options.title : null;
-  const encodedTitle = encodeURIComponent(title);
+  let encodedLabel = options.label ? encodeURIComponent(options.label) : null; //added
   let app = options.app && options.app.length ? options.app : null;
   const dialogTitle =
     options.dialogTitle && options.dialogTitle.length
@@ -80,15 +80,13 @@ export async function showLocation(options) {
   let url = null;
 
   switch (app) {
-    case 'apple-maps':
-      url = prefixes['apple-maps'];
-      url = useSourceDestiny
-        ? `${url}?saddr=${sourceLatLng}&daddr=${latlng}`
-        : `${url}?ll=${latlng}`;
-      url += `&q=${
-        title ? `${encodedTitle}&address=${encodedTitle}` : 'Location'
-      }`;
-      break;
+    case 'apple-maps': //modified
+      url = prefixes['apple-maps']
+      url += encodedTitle
+        ? `?address=${encodedTitle}`
+        : useSourceDestiny ? `?saddr=${sourceLatLng}&daddr=${latlng}` : `?ll=${latlng}`;
+      url += encodedLabel ? `&q=${encodedLabel}` : "Location";
+      break
     case 'google-maps':
       url = prefixes['google-maps'];
       if (useSourceDestiny) {
@@ -152,12 +150,13 @@ export async function showLocation(options) {
         url = `http://truckmap.com/route/${sourceLat},${sourceLng}/${lat},${lng}`;
       }
       break;
-    case 'waze':
-      url = `${prefixes.waze}?ll=${latlng}&navigate=yes`;
+    case 'waze': //modified
       if (title) {
-        url += `&q=${encodedTitle}`;
+        url = `${prefixes["waze"]}?q=${encodedTitle}&navigate=yes`;
+      } else {
+        url = `${prefixes["waze"]}?ll=${latlng}&navigate=yes`;
       }
-      break;
+      break
     case 'yandex':
       url = `${prefixes.yandex}build_route_on_map?lat_to=${lat}&lon_to=${lng}`;
 
